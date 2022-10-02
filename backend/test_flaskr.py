@@ -47,14 +47,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['total_categories'])
         self.assertTrue(len(data['categories']))
 
-    # def test_get_category_not_available(self):
-    #     res = self.client().get('/categories?id=100')
-    #     data = json.loads(res.data)
-
-    #     self.assertEqual(res.status_code, 404)
-    #     self.assertEqual(data['status'], False)
-    #     self.assertEqual(data['message'], 'resource not found')
-
     def test_get_paginated_question(self):
         """A test to check if the get questions"""
         res = self.client().get("/questions")
