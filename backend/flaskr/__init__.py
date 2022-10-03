@@ -9,21 +9,24 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+
 def paginate_questions(request, selection):
     """A function to paginate question"""
     page = request.args.get('page', 1, type=int)
     start = (page - 1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
-    questions = [question.format() for question in selection] 
-    current_question =  questions[start:end]
+    questions = [question.format() for question in selection]
+    current_question = questions[start:end]
     return current_question
+
 
 def format_categories(categories):
     """A function to format categories"""
     result_category = {}
     for item in categories:
-        result_category[item.id] = item.type    
+        result_category[item.id] = item.type
     return result_category
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -36,8 +39,10 @@ def create_app(test_config=None):
     """
     @app.after_request
     def after_request(response):
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorizarion, true")
-        response.headers.add("Access-Control-Allow-Methods", "GET, PUT, DELETE, POST, OPTIONS")
+        response.headers.add("Access-Control-Allow-Headers",
+                             "Content-Type, Authorizarion, true")
+        response.headers.add("Access-Control-Allow-Methods",
+                             "GET, PUT, DELETE, POST, OPTIONS")
         return response
 
     """
@@ -53,7 +58,6 @@ def create_app(test_config=None):
     def get_categories():
         categories = Category.query.order_by(Category.id).all()
 
-
         if len(categories) == 0:
             abort(404)
 
@@ -61,8 +65,7 @@ def create_app(test_config=None):
             'success': True,
             'categories': format_categories(categories),
             'total_categories': len(categories)
-        })    
-
+        })
 
     """
     @TODO:
@@ -81,9 +84,9 @@ def create_app(test_config=None):
     def get_paginated_questions():
         selection = Question.query.order_by(Question.id).all()
         current_question = paginate_questions(request, selection)
-        
+
         categories = Category.query.all()
-        
+
         if len(current_question) == 0:
             abort(404)
 
@@ -92,7 +95,7 @@ def create_app(test_config=None):
             'questions': current_question,
             'total_questions': len(selection),
             'categories': format_categories(categories)
-        })    
+        })
 
     """
     @TODO:
@@ -104,7 +107,8 @@ def create_app(test_config=None):
     @app.route('/questions/<int:question_id>', methods=["DELETE"])
     def delete_question(question_id):
         try:
-            question = Question.query.filter(Question.id == question_id).one_or_none()
+            question = Question.query.filter(
+                Question.id == question_id).one_or_none()
             if question == None:
                 abort(404)
 
@@ -114,13 +118,13 @@ def create_app(test_config=None):
 
             return jsonify({
                 'success': True,
-                'deleted':question_id,
+                'deleted': question_id,
                 'questions': current_questions,
                 "total_questions": len(Question.query.all())
             })
         except:
             abort(422)
-            
+
     """
     @TODO:
     Create an endpoint to POST a new question,
@@ -142,7 +146,8 @@ def create_app(test_config=None):
         new_category = body.get('category')
 
         try:
-            question = Question(question=new_question, answer=new_answer, difficulty=new_difficulty, category=new_category)
+            question = Question(question=new_question, answer=new_answer,
+                                difficulty=new_difficulty, category=new_category)
             question.insert()
 
             selection = Question.query.order_by(Question.id).all()
@@ -156,7 +161,7 @@ def create_app(test_config=None):
             })
         except:
             print(sys.exc_info())
-            abort(422)    
+            abort(422)
 
     """
     @TODO:
@@ -172,7 +177,8 @@ def create_app(test_config=None):
     def search_questions():
         body = request.get_json()
         search = body.get("searchTerm", None)
-        search_result = Question.query.filter(Question.question.ilike(f'%{search}%')).all()   
+        search_result = Question.query.filter(
+            Question.question.ilike(f'%{search}%')).all()
         if len(search_result) == 0:
             abort(404)
         try:
@@ -182,8 +188,7 @@ def create_app(test_config=None):
                 'total_questions': len(search_result)
             })
         except:
-            abort(422)    
-
+            abort(422)
 
     """
     @TODO:
@@ -199,15 +204,17 @@ def create_app(test_config=None):
         if category is None:
             abort(404)
         else:
-            questions_by_category = Question.query.filter_by(category = str(id)).all()
-            current_questions = paginate_questions(request, questions_by_category)
+            questions_by_category = Question.query.filter_by(
+                category=str(id)).all()
+            current_questions = paginate_questions(
+                request, questions_by_category)
 
-            return jsonify ({
+            return jsonify({
                 'success': True,
                 'questions': current_questions,
                 'total_questions': len(questions_by_category),
                 'current_category': category.type
-            })    
+            })
 
     """
     @TODO:
@@ -226,30 +233,28 @@ def create_app(test_config=None):
         quiz_category = body.get("quiz_category", None)
         previous_questions = body.get("previous_questions", None)
         questions = []
-    
 
         if quiz_category["id"] == 0:
             questions = Question.query.all()
         else:
-            questions = Question.query.filter(Question.category == quiz_category["id"]).all()    
-        
+            questions = Question.query.filter(
+                Question.category == quiz_category["id"]).all()
+
         if len(questions) == 0:
             abort(404)
 
         if len(previous_questions) > 0:
-            questions = list(filter(lambda item: item.id not in previous_questions, questions))
+            questions = list(
+                filter(lambda item: item.id not in previous_questions, questions))
 
         try:
-            return jsonify ({
-                "success" : True,
-                "question" : random.choice([q.format() for q in questions]),
+            return jsonify({
+                "success": True,
+                "question": random.choice([q.format() for q in questions]),
             })
         except:
             print(sys.exc_info)
-            abort(422)       
-
-
-        
+            abort(422)
 
     """
     @TODO:
@@ -294,9 +299,6 @@ def create_app(test_config=None):
             "success": False,
             'error': 500,
             'message': 'internal server error'
-        }), 500    
+        }), 500
 
-
- 
     return app
-
